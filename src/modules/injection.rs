@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use super::spreading::{Cloud, Polygon};
+use rand::Rng;
 
 /// Объект реактора (генератора частиц).
 /// Генерирует частицы диаметра D на высоте H над собой.
@@ -21,13 +22,18 @@ impl Reactor {
         }
     }
 
-    pub fn inject(&self, cloud: &mut Cloud) {
+    pub fn inject(&self, cloud: &mut Cloud, hours: i32) {
+        let mut rng = rand::thread_rng();
+        let h_range = if hours <= 783 {
+            (40.0, 600.0)
+        } else {
+            (600.0, 1000.0)
+        };
         for _ in 0..self.productivity {
-            let lat = 1.0;
-            let long = 2.0;
-            let h = 3.0;
-            let d = log_normal.sample(&mut rand::rng());
-            println!("d: {d}");
+            let lat = self.latitude;
+            let long = self.longitude;
+            let h = rng.gen_range(h_range.0..h_range.1);
+            let d: f32 = rng.gen_range(48.6..52.4);
             cloud.add(Polygon::new(lat, long, h, d));
         }
     }
