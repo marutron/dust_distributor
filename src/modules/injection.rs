@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+
+use super::super::config::{H_RANGE_CHANGING_TIME, LOWER_H_RANGE, SIZE_RANGE, UPPER_H_RANGE};
 use super::spreading::{Cloud, Polygon};
 use rand::Rng;
 
@@ -22,18 +24,18 @@ impl Reactor {
         }
     }
 
-    pub fn inject(&self, cloud: &mut Cloud, hours: i32) {
-        let mut rng = rand::thread_rng();
-        let h_range = if hours <= 783 {
-            (40.0, 600.0)
+    pub fn inject(&self, cloud: &mut Cloud, hours: u16) {
+        let mut rng = rand::rng();
+        let h_range = if hours <= H_RANGE_CHANGING_TIME {
+            LOWER_H_RANGE
         } else {
-            (600.0, 1000.0)
+            UPPER_H_RANGE
         };
         for _ in 0..self.productivity {
             let lat = self.latitude;
             let long = self.longitude;
-            let h = rng.gen_range(h_range.0..h_range.1);
-            let d: f32 = rng.gen_range(48.6..52.4);
+            let h = rng.random_range(h_range.0..h_range.1);
+            let d: f32 = rng.random_range(SIZE_RANGE.0..SIZE_RANGE.1);
             cloud.add(Polygon::new(lat, long, h, d));
         }
     }
