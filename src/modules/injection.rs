@@ -9,6 +9,7 @@ use rand::Rng;
 /// H выбирается рандомно в диапазоне 100 - 1000 м. в зависимости от количества дней, прошедших с
 /// начала события.
 /// D выбирается рандомно в диапазоне mu = 50 мкм, sigma = 0.25
+#[derive(Clone)]
 pub struct Reactor {
     pub latitude: f32,  // широта
     pub longitude: f32, // долгота
@@ -26,7 +27,7 @@ impl Reactor {
 
     /// Функция формирования выброса.
     /// Испускает Reactor.productivity частиц (полигонов) в единицу времени (обычно в час)
-    pub fn inject(&self, hours: i64) -> Vec<Polygon> {
+    pub fn inject(&self, hours: u16) -> Vec<Polygon> {
         let mut rng = rand::rng();
         let h_range = if hours <= H_RANGE_CHANGING_TIME {
             LOWER_H_RANGE
