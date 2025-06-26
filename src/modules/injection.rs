@@ -44,3 +44,32 @@ impl Reactor {
         addition
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn injection_in_lower_h_range() {
+        let reactor = Reactor::new(52.091943, 47.951047, 1_000_000);
+        let hour = 1;
+        let res = reactor.inject(hour);
+        assert_eq!(res.len(), 1_000_000);
+
+        for poly in res {
+            assert!(poly.height > LOWER_H_RANGE.0 && poly.height < LOWER_H_RANGE.1)
+        }
+    }
+
+    #[test]
+    fn hour_more_changing_time() {
+        let reactor = Reactor::new(52.091943, 47.951047, 1_000_000);
+        let hour = 100500;
+        let res = reactor.inject(hour);
+        assert_eq!(res.len(), 1_000_000);
+
+        for poly in res {
+            assert!(poly.height > UPPER_H_RANGE.0 && poly.height < UPPER_H_RANGE.1)
+        }
+    }
+}
