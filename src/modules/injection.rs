@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use super::super::config::{H_RANGE_CHANGING_TIME, LOWER_H_RANGE, SIZE_RANGE, UPPER_H_RANGE};
-use super::spreading::{Cloud, Polygon};
+use super::spreading::Polygon;
 use rand::Rng;
 
 /// Объект реактора (генератора частиц).

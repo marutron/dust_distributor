@@ -1,4 +1,3 @@
-use chrono::Duration;
 use config::{ACCIDENT_BEGIN, ACCIDENT_END};
 use modules::injection::Reactor;
 use modules::spreading::Cloud;
