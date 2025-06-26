@@ -24,19 +24,23 @@ impl Reactor {
         }
     }
 
-    pub fn inject(&self, cloud: &mut Cloud, hours: u16) {
+    /// Функция формирования выброса.
+    /// Испускает Reactor.productivity частиц (полигонов) в единицу времени (обычно в час)
+    pub fn inject(&self, hours: i64) -> Vec<Polygon> {
         let mut rng = rand::rng();
         let h_range = if hours <= H_RANGE_CHANGING_TIME {
             LOWER_H_RANGE
         } else {
             UPPER_H_RANGE
         };
+        let mut addition = vec![];
+        let lat = self.latitude;
+        let long = self.longitude;
         for _ in 0..self.productivity {
-            let lat = self.latitude;
-            let long = self.longitude;
             let h = rng.random_range(h_range.0..h_range.1);
             let d: f32 = rng.random_range(SIZE_RANGE.0..SIZE_RANGE.1);
-            cloud.add(Polygon::new(lat, long, h, d));
+            addition.push(Polygon::new(lat, long, h, d));
         }
+        addition
     }
 }

@@ -7,9 +7,16 @@ pub mod config;
 mod modules;
 
 fn main() {
-    let reactor = Reactor::new(52.091943, 47.951047, 1_000_000);
+    let timer = std::time::Instant::now();
+    let reactor = Reactor::new(52.091943, 47.951047, 1_000_00);
     let mut cloud = Cloud::new();
 
-    let time_delta = reactor.inject(&mut cloud, 4);
+    let accident_duration = (ACCIDENT_END - ACCIDENT_BEGIN).num_hours();
+    for hour in 0..accident_duration {
+        let injected = reactor.inject(hour);
+        cloud.extend(injected)
+    }
+    println!("{:?}", timer.elapsed());
+
     println!("{:?}", cloud.get_size())
 }

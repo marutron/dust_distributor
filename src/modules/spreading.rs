@@ -9,6 +9,7 @@ pub struct Polygon {
     pub radiation: Option<&'static str>,
 }
 
+/// Полигон частиц. Используется из-за невозможности моделирования каждой частицы.
 impl Polygon {
     pub fn new(latitude: f32, longitude: f32, height: f32, d: f32) -> Self {
         Polygon {
@@ -22,6 +23,7 @@ impl Polygon {
     }
 }
 
+/// Облако частиц - формация всех полигонов, испущеных реактором.
 pub struct Cloud(Vec<Polygon>);
 
 impl Cloud {
@@ -35,5 +37,9 @@ impl Cloud {
 
     pub fn add(&mut self, poly: Polygon) {
         self.0.push(poly);
+    }
+
+    pub fn extend(&mut self, new_injected: Vec<Polygon>) {
+        self.0.extend(new_injected);
     }
 }
