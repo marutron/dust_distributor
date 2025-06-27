@@ -2,29 +2,29 @@ use std::{collections::VecDeque, vec};
 
 /// Разбивает заданные (в векторе) задачи поровну* между логическими ядрами процессора
 pub fn break_tasks_by_cores(overall_tasks_count: u16, num_cpus: u16) -> VecDeque<Vec<u16>> {
-    let task_count = overall_tasks_count / num_cpus;
+    let task_by_core = overall_tasks_count / num_cpus;
 
     let mut tasks = VecDeque::new();
 
     let mut counter = 0u16;
     let mut tasks_vec = vec![];
-    if task_count >= 1 {
-        for i in 0..overall_tasks_count {
+
+    for i in 0..overall_tasks_count {
+        if task_by_core > 1 {
             counter += 1;
             tasks_vec.push(i);
-            if counter % task_count == 0 {
+            if counter % task_by_core == 0 {
                 tasks.push_back(tasks_vec.clone());
                 tasks_vec = vec![];
             }
-        }
-        if !tasks_vec.is_empty() {
-            tasks.push_back(tasks_vec);
-        }
-    } else {
-        for i in 0..overall_tasks_count {
+        } else {
             tasks.push_back(vec![i]);
         }
     }
+    if !tasks_vec.is_empty() {
+        tasks.push_back(tasks_vec);
+    }
+
     println!("{:#?}", tasks);
     tasks
 }
@@ -32,6 +32,18 @@ pub fn break_tasks_by_cores(overall_tasks_count: u16, num_cpus: u16) -> VecDeque
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    // Количество задач кратно числу ядер
+    fn tasks_count_equals_of_cores_num() {
+        let accident_duration = 8;
+        let num_cpus = 8;
+        let res = break_tasks_by_cores(accident_duration, num_cpus);
+        assert_eq!(res.len(), 8);
+        for vector in res {
+            assert_eq!(vector.len(), 1)
+        }
+    }
 
     #[test]
     // Количество задач кратно числу ядер
