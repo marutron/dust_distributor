@@ -1,4 +1,12 @@
-use std::{collections::VecDeque, fmt::Debug, vec};
+use std::{
+    collections::VecDeque,
+    fmt::Debug,
+    sync::{Arc, Mutex},
+    thread::{self, JoinHandle},
+    vec,
+};
+
+use crate::modules::{injection::Reactor, spreading::Cloud};
 
 /// Разбивает заданные (в векторе) задачи поровну* между логическими ядрами процессора
 pub fn break_tasks_by_cores<T>(overall_task: Vec<T>, num_cpus: usize) -> VecDeque<Vec<T>>
@@ -28,6 +36,30 @@ where
         tasks.push_back(tasks_vec);
     }
     tasks
+}
+
+pub fn send_tasks_to_threads(
+    tasks: VecDeque<Vec<u16>>,
+    cloud: &Arc<Mutex<Cloud>>,
+    reactor: &Arc<Reactor>,
+    changing_time: u16,
+) -> Vec<JoinHandle<()>> {
+    let mut handles = vec![];
+    for task in tasks {
+        let cloud = Arc::clone(&cloud);
+        let reactor = Arc::clone(&reactor);
+        let handle = thread::spawn(move || {
+            for hour in task {
+                let res = reactor.inject(hour, changing_time);
+                let mut cloud_mut = cloud.lock().unwrap();
+                cloud_mut.extend(res);
+            }
+            let cloud = cloud.lock().unwrap();
+            println!("some pid worked. cloud size: {:?}", cloud.get_size())
+        });
+        handles.push(handle);
+    }
+    handles
 }
 
 #[cfg(test)]
