@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 
 // количество доступных логических ядера процессора
-pub static NUM_CPUS: u16 = 8;
+pub static NUM_CPUS: usize = 8;
 
 // начало выброса
 pub static ACCIDENT_BEGIN: NaiveDate = NaiveDate::from_ymd_opt(1986, 4, 26).unwrap();

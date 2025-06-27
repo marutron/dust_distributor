@@ -16,7 +16,12 @@ fn main() {
     let cloud = Arc::new(Mutex::new(Cloud::new()));
 
     let accident_duration = (ACCIDENT_END - ACCIDENT_BEGIN).num_hours() as u16;
-    let tasks = break_tasks_by_cores(accident_duration, NUM_CPUS);
+    let mut initial_task = vec![];
+    for i in 0..accident_duration {
+        initial_task.push(i);
+    }
+
+    let tasks = break_tasks_by_cores(initial_task, NUM_CPUS);
 
     let mut handles = vec![];
 

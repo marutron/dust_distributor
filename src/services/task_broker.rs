@@ -1,15 +1,18 @@
-use std::{collections::VecDeque, vec};
+use std::{collections::VecDeque, fmt::Debug, vec};
 
 /// Разбивает заданные (в векторе) задачи поровну* между логическими ядрами процессора
-pub fn break_tasks_by_cores(overall_tasks_count: u16, num_cpus: u16) -> VecDeque<Vec<u16>> {
-    let task_by_core = overall_tasks_count / num_cpus;
+pub fn break_tasks_by_cores<T>(overall_task: Vec<T>, num_cpus: usize) -> VecDeque<Vec<T>>
+where
+    T: Clone + Debug,
+{
+    let task_by_core = overall_task.len() / num_cpus;
 
     let mut tasks = VecDeque::new();
 
-    let mut counter = 0u16;
+    let mut counter = 0usize;
     let mut tasks_vec = vec![];
 
-    for i in 0..overall_tasks_count {
+    for i in overall_task {
         if task_by_core > 1 {
             counter += 1;
             tasks_vec.push(i);
@@ -24,8 +27,6 @@ pub fn break_tasks_by_cores(overall_tasks_count: u16, num_cpus: u16) -> VecDeque
     if !tasks_vec.is_empty() {
         tasks.push_back(tasks_vec);
     }
-
-    println!("{:#?}", tasks);
     tasks
 }
 
@@ -36,9 +37,9 @@ mod tests {
     #[test]
     // Количество задач кратно числу ядер
     fn tasks_count_equals_of_cores_num() {
-        let accident_duration = 8;
+        let initial_task = vec![1, 2, 3, 4, 5, 6, 7, 8];
         let num_cpus = 8;
-        let res = break_tasks_by_cores(accident_duration, num_cpus);
+        let res = break_tasks_by_cores(initial_task, num_cpus);
         assert_eq!(res.len(), 8);
         for vector in res {
             assert_eq!(vector.len(), 1)
@@ -48,9 +49,9 @@ mod tests {
     #[test]
     // Количество задач кратно числу ядер
     fn tasks_count_multiple_of_cores_num() {
-        let accident_duration = 16;
+        let initial_task = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
         let num_cpus = 8;
-        let res = break_tasks_by_cores(accident_duration, num_cpus);
+        let res = break_tasks_by_cores(initial_task, num_cpus);
         assert_eq!(res.len(), 8);
         for vector in res {
             assert_eq!(vector.len(), 2)
@@ -60,9 +61,9 @@ mod tests {
     #[test]
     // Количество задач не кратно числу ядер
     fn tasks_count_not_multiple_of_cores_num() {
-        let accident_duration = 17;
+        let initial_task = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
         let num_cpus = 8;
-        let res = break_tasks_by_cores(accident_duration, num_cpus);
+        let res = break_tasks_by_cores(initial_task, num_cpus);
         assert_eq!(res.len(), 9);
         for i in 0..res.len() {
             let vector = &res[i];
@@ -77,10 +78,11 @@ mod tests {
     #[test]
     // Количество задач меньше числа ядер
     fn tasks_count_less_then_cores_num() {
-        let accident_duration = 7;
+        let initial_task = vec![1, 2, 3, 4, 5, 6, 7];
         let num_cpus = 8;
-        let res = break_tasks_by_cores(accident_duration, num_cpus);
+        let res = break_tasks_by_cores(initial_task, num_cpus);
         assert_eq!(res.len(), 7);
+        println!("{:?}", &res);
         for vector in res {
             assert_eq!(vector.len(), 1)
         }
