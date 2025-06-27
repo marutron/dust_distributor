@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use super::super::config::{H_RANGE_CHANGING_TIME, LOWER_H_RANGE, SIZE_RANGE, UPPER_H_RANGE};
+use super::super::config::{LOWER_H_RANGE, SIZE_RANGE, UPPER_H_RANGE};
 use super::spreading::Polygon;
 use rand::Rng;
 
@@ -27,9 +27,9 @@ impl Reactor {
 
     /// Функция формирования выброса.
     /// Испускает Reactor.productivity частиц (полигонов) в единицу времени (обычно в час)
-    pub fn inject(&self, hours: u16) -> Vec<Polygon> {
+    pub fn inject(&self, hours: u16, changing_time: u16) -> Vec<Polygon> {
         let mut rng = rand::rng();
-        let h_range = if hours <= H_RANGE_CHANGING_TIME {
+        let h_range = if hours <= changing_time {
             LOWER_H_RANGE
         } else {
             UPPER_H_RANGE
@@ -54,7 +54,7 @@ mod tests {
     fn injection_in_lower_h_range() {
         let reactor = Reactor::new(52.091943, 47.951047, 1_000_000);
         let hour = 1;
-        let res = reactor.inject(hour);
+        let res = reactor.inject(hour, 150);
         assert_eq!(res.len(), 1_000_000);
 
         for poly in res {
@@ -65,8 +65,8 @@ mod tests {
     #[test]
     fn hour_more_changing_time() {
         let reactor = Reactor::new(52.091943, 47.951047, 1_000_000);
-        let hour = 100500;
-        let res = reactor.inject(hour);
+        let hour = 200;
+        let res = reactor.inject(hour, 150);
         assert_eq!(res.len(), 1_000_000);
 
         for poly in res {

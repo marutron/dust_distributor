@@ -1,12 +1,14 @@
 use std::sync::{Arc, Mutex};
 use std::{thread, vec};
 
-use config::{ACCIDENT_BEGIN, ACCIDENT_END, NUM_CPUS};
+use config::{ACCIDENT_BEGIN, ACCIDENT_END, H_RANGE_CHANGING_TIME, NUM_CPUS};
 use modules::injection::Reactor;
 use modules::spreading::Cloud;
+use services::task_broker::break_tasks_by_cores;
 
 pub mod config;
-mod modules;
+pub mod modules;
+mod services;
 
 fn main() {
     let timer = std::time::Instant::now();
@@ -14,20 +16,21 @@ fn main() {
     let cloud = Arc::new(Mutex::new(Cloud::new()));
 
     let accident_duration = (ACCIDENT_END - ACCIDENT_BEGIN).num_hours() as u16;
-    let task_count = accident_duration / NUM_CPUS;
+    let tasks = break_tasks_by_cores(accident_duration, NUM_CPUS);
+
     let mut handles = vec![];
 
-    for i in 0..NUM_CPUS {
+    for task in tasks {
         let cloud = Arc::clone(&cloud);
         let reactor = Arc::clone(&reactor);
         let handle = thread::spawn(move || {
-            for hour in 0..task_count {
-                let res = reactor.inject(hour);
+            for hour in task {
+                let res = reactor.inject(hour, H_RANGE_CHANGING_TIME);
                 let mut cloud_mut = cloud.lock().unwrap();
                 cloud_mut.extend(res);
             }
             let cloud = cloud.lock().unwrap();
-            println!("pid: {i}, cloud size: {:?}", cloud.get_size())
+            println!("some pid worked. cloud size: {:?}", cloud.get_size())
         });
         handles.push(handle);
     }
