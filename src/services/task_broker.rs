@@ -1,18 +1,12 @@
-use std::{
-    collections::VecDeque,
-    fmt::Debug,
-    sync::{Arc, Mutex},
-    thread::{self, JoinHandle},
-    vec,
-};
-
-use crate::modules::{injection::Reactor, spreading::Cloud};
+use std::{collections::VecDeque, fmt::Debug, sync::Arc, thread, vec};
 
 /// Разбивает заданные (в векторе) задачи поровну* между логическими ядрами процессора
-pub fn break_tasks_by_cores<T>(overall_task: Vec<T>, num_cpus: usize) -> VecDeque<Vec<T>>
+pub fn break_tasks_by_cores<T, I>(task_iter: I, num_cpus: usize) -> VecDeque<Vec<T>>
 where
     T: Clone + Debug,
+    I: IntoIterator<Item = T>,
 {
+    let overall_task: Vec<T> = task_iter.into_iter().collect();
     let task_by_core = overall_task.len() / num_cpus;
 
     let mut tasks = VecDeque::new();
@@ -38,28 +32,22 @@ where
     tasks
 }
 
-pub fn send_tasks_to_threads(
-    tasks: VecDeque<Vec<u16>>,
-    cloud: &Arc<Mutex<Cloud>>,
-    reactor: &Arc<Reactor>,
-    changing_time: u16,
-) -> Vec<JoinHandle<()>> {
-    let mut handles = vec![];
-    for task in tasks {
-        let cloud = Arc::clone(&cloud);
-        let reactor = Arc::clone(&reactor);
-        let handle = thread::spawn(move || {
-            for hour in task {
-                let res = reactor.inject(hour, changing_time);
-                let mut cloud_mut = cloud.lock().unwrap();
-                cloud_mut.extend(res);
-            }
-            let cloud = cloud.lock().unwrap();
-            println!("some pid worked. cloud size: {:?}", cloud.get_size())
-        });
-        handles.push(handle);
-    }
-    handles
+pub fn run_in_threads<F, I, T, R>(tasks_iter: I, f: F) -> Vec<thread::JoinHandle<R>>
+where
+    F: Fn(T) -> R + Send + Sync + 'static,
+    I: IntoIterator<Item = T>,
+    T: Send + 'static,
+    R: Send + 'static,
+{
+    let tasks: Vec<T> = tasks_iter.into_iter().collect();
+    let f = Arc::new(f);
+    tasks
+        .into_iter()
+        .map(|task| {
+            let f = Arc::clone(&f);
+            thread::spawn(move || f(task))
+        })
+        .collect()
 }
 
 #[cfg(test)]

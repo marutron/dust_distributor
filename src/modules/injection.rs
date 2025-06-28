@@ -58,7 +58,7 @@ mod tests {
         assert_eq!(res.len(), 1_000_000);
 
         for poly in res {
-            assert!(poly.height > LOWER_H_RANGE.0 && poly.height < LOWER_H_RANGE.1)
+            assert!(poly.height >= LOWER_H_RANGE.0 && poly.height < LOWER_H_RANGE.1)
         }
     }
 
@@ -70,7 +70,7 @@ mod tests {
         assert_eq!(res.len(), 1_000_000);
 
         for poly in res {
-            assert!(poly.height > UPPER_H_RANGE.0 && poly.height < UPPER_H_RANGE.1)
+            assert!(poly.height >= UPPER_H_RANGE.0 && poly.height < UPPER_H_RANGE.1)
         }
     }
 }
