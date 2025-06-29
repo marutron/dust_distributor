@@ -3,7 +3,8 @@ use std::thread;
 
 use crate::modules::{injection::Reactor, spreading::Cloud};
 
-pub fn construct_injection(
+/// Конструирует объект замыкания Reactor.inject для передачи для выполнения в потоки
+pub fn construct_injection_closure(
     cloud: Arc<Mutex<Cloud>>,
     reactor: Arc<Reactor>,
     changing_time: u16,

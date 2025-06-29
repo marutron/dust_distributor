@@ -4,8 +4,8 @@ use std::vec;
 use config::{ACCIDENT_BEGIN, ACCIDENT_END, H_RANGE_CHANGING_TIME, NUM_CPUS};
 use modules::injection::Reactor;
 use modules::spreading::Cloud;
-use services::closures_constructor::construct_injection;
-use services::task_broker::{break_tasks_by_cores, run_in_threads};
+use services::closures_constructor::construct_injection_closure;
+use services::task_broker::{distribute_tasks_by_threads, run_into_threads};
 
 pub mod config;
 pub mod modules;
@@ -22,13 +22,14 @@ fn main() {
         initial_task.push(i);
     }
 
-    let tasks = break_tasks_by_cores(initial_task, NUM_CPUS);
+    let tasks = distribute_tasks_by_threads(initial_task, NUM_CPUS);
     let moved_cloud = Arc::clone(&cloud);
     let moved_reactor = Arc::clone(&reactor);
 
-    let injection_clos = construct_injection(moved_cloud, moved_reactor, H_RANGE_CHANGING_TIME);
+    let injection_clos =
+        construct_injection_closure(moved_cloud, moved_reactor, H_RANGE_CHANGING_TIME);
 
-    let handles = run_in_threads(tasks, move |task| injection_clos(task));
+    let handles = run_into_threads(tasks, move |task| injection_clos(task));
 
     for handle in handles {
         handle.join().unwrap();
