@@ -13,11 +13,11 @@ use rand::Rng;
 pub struct Reactor {
     pub latitude: f32,  // широта
     pub longitude: f32, // долгота
-    productivity: u64,  // производительность выброса [частиц / час]
+    productivity: u32,  // производительность выброса [частиц / час]
 }
 
 impl Reactor {
-    pub fn new(latitude: f32, longitude: f32, productivity: u64) -> Self {
+    pub fn new(latitude: f32, longitude: f32, productivity: u32) -> Self {
         Reactor {
             latitude,
             longitude,
