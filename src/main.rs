@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::sync::{Arc, Mutex};
 use std::vec;
 
@@ -16,7 +15,7 @@ mod services;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/calculate", get(bar));
+    let app = Router::new().route("/calculate", get(calculate_main));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8888").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -27,13 +26,22 @@ struct CalcParams {
     latitude: f32,
     longitude: f32,
     productivity: u32,
+    acc_begin: String,
+    acc_end: String,
 }
+// 0.0.0.0:8888/calculate?latitude=51.389409&longitude=30.100186&productivity=10000&accident_begin=1986-04-26T01:23:47+0300&accident_end=1986-05-07T18:00:00+0300
 
-async fn bar(Query(params): Query<CalcParams>) -> String {
-    todo!()
-}
+async fn calculate_main(Query(params): Query<CalcParams>) -> String {
+    let accident_begin = iso8601::datetime(&params.acc_begin).unwrap();
+    let accident_end = iso8601::datetime(&params.acc_end).unwrap();
 
-fn calculate_main(Query(params): Query<CalcParams>) {
+    // let date = accident_begin.date.into_naive().unwrap();
+    // let time = accident_begin.time.into_naive().unwrap();
+
+    // let date2 = accident_end.date.into_naive().unwrap();
+
+    // let div = date2 - date;
+
     let timer = std::time::Instant::now();
     let reactor = Arc::new(Reactor::new(
         params.latitude,
@@ -63,5 +71,5 @@ fn calculate_main(Query(params): Query<CalcParams>) {
 
     println!("{:?}", timer.elapsed());
 
-    println!("{:?}", cloud.lock().unwrap().get_size())
+    format!("{:?}", cloud.lock().unwrap().get_size())
 }
