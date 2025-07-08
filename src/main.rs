@@ -1,8 +1,9 @@
+use services::parsers::get_datetime;
 use std::sync::{Arc, Mutex};
 use std::vec;
 
 use axum::{extract::Query, routing::get, Router};
-use config::{ACCIDENT_BEGIN, ACCIDENT_END, H_RANGE_CHANGING_TIME, NUM_CPUS};
+use config::{H_RANGE_CHANGING_TIME, NUM_CPUS};
 use modules::injection::Reactor;
 use modules::spreading::Cloud;
 use serde::Deserialize;
@@ -32,15 +33,8 @@ struct CalcParams {
 // 0.0.0.0:8888/calculate?latitude=51.389409&longitude=30.100186&productivity=10000&accident_begin=1986-04-26T01:23:47+0300&accident_end=1986-05-07T18:00:00+0300
 
 async fn calculate_main(Query(params): Query<CalcParams>) -> String {
-    let accident_begin = iso8601::datetime(&params.acc_begin).unwrap();
-    let accident_end = iso8601::datetime(&params.acc_end).unwrap();
-
-    // let date = accident_begin.date.into_naive().unwrap();
-    // let time = accident_begin.time.into_naive().unwrap();
-
-    // let date2 = accident_end.date.into_naive().unwrap();
-
-    // let div = date2 - date;
+    let accident_begin = get_datetime(&params.acc_begin).unwrap();
+    let accident_end = get_datetime(&params.acc_end).unwrap();
 
     let timer = std::time::Instant::now();
     let reactor = Arc::new(Reactor::new(
@@ -50,7 +44,7 @@ async fn calculate_main(Query(params): Query<CalcParams>) -> String {
     ));
     let cloud = Arc::new(Mutex::new(Cloud::new()));
 
-    let accident_duration = (ACCIDENT_END - ACCIDENT_BEGIN).num_hours() as u16;
+    let accident_duration = (accident_end - accident_begin).num_hours() as u16;
     let mut initial_task = vec![];
     for i in 0..accident_duration {
         initial_task.push(i);
