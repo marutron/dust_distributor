@@ -49,13 +49,12 @@ async fn main_handler(Query(params): Query<CalcParams>) -> String {
         params.longitude,
         params.productivity,
         acc_duration,
-    )
-    .await;
+    );
     println!("{:?}", timer.elapsed());
     res
 }
 
-async fn calculate_main(
+fn calculate_main(
     latitude: f32,
     longitude: f32,
     productivity: u32,
@@ -83,4 +82,20 @@ async fn calculate_main(
     }
 
     format!("{:?}", cloud.lock().unwrap().get_size())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculator() {
+        let latitude = 51.389409;
+        let longitude = 30.100186;
+        let productivity = 100_000;
+        let accident_duration = 27;
+
+        let a = calculate_main(latitude, longitude, productivity, accident_duration);
+        assert_eq!(a, "2700000");
+    }
 }
