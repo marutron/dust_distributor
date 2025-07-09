@@ -16,7 +16,7 @@ mod services;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/calculate", get(calculate_main));
+    let app = Router::new().route("/calculate", get(main_handler));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8888").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -32,19 +32,38 @@ struct CalcParams {
 }
 // 0.0.0.0:8888/calculate?latitude=51.389409&longitude=30.100186&productivity=10000&accident_begin=1986-04-26T01:23:47+0300&accident_end=1986-05-07T18:00:00+0300
 
-async fn calculate_main(Query(params): Query<CalcParams>) -> String {
-    let accident_begin = get_datetime(&params.acc_begin).unwrap();
-    let accident_end = get_datetime(&params.acc_end).unwrap();
+async fn main_handler(Query(params): Query<CalcParams>) -> String {
+    let accident_begin = match get_datetime(&params.acc_begin) {
+        Ok(datetime) => datetime,
+        Err(str) => return str,
+    };
+    let accident_end = match get_datetime(&params.acc_end) {
+        Ok(datetime) => datetime,
+        Err(str) => return str,
+    };
 
+    let acc_duration = (accident_end - accident_begin).num_hours() as u16;
     let timer = std::time::Instant::now();
-    let reactor = Arc::new(Reactor::new(
+    let res = calculate_main(
         params.latitude,
         params.longitude,
         params.productivity,
-    ));
+        acc_duration,
+    )
+    .await;
+    println!("{:?}", timer.elapsed());
+    res
+}
+
+async fn calculate_main(
+    latitude: f32,
+    longitude: f32,
+    productivity: u32,
+    accident_duration: u16,
+) -> String {
+    let reactor = Arc::new(Reactor::new(latitude, longitude, productivity));
     let cloud = Arc::new(Mutex::new(Cloud::new()));
 
-    let accident_duration = (accident_end - accident_begin).num_hours() as u16;
     let mut initial_task = vec![];
     for i in 0..accident_duration {
         initial_task.push(i);
@@ -62,8 +81,6 @@ async fn calculate_main(Query(params): Query<CalcParams>) -> String {
     for handle in handles {
         handle.join().unwrap();
     }
-
-    println!("{:?}", timer.elapsed());
 
     format!("{:?}", cloud.lock().unwrap().get_size())
 }
